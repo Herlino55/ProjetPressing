@@ -5,7 +5,8 @@ import Commande from './commande.model';
 export enum MethodePaiement {
   ESPECE = 'espece',
   CARTE = 'carte',
-  MOBILE = 'mobile',
+  MOBILE_MONEY = 'mobile money',
+  ORANGE_MONEY = 'orange money',
   VIREMENT = 'virement',
   CHEQUE = 'cheque'
 }

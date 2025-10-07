@@ -21,6 +21,12 @@ router.get(
 );
 
 router.get(
+  '/boutique',
+  authenticate,
+  VetementController.getVetementsByBoutique
+);
+
+router.get(
   '/:id',
   authenticate,
   VetementController.getVetementById

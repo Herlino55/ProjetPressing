@@ -6,7 +6,10 @@ import { NotFoundError } from '../middlewares/error.middleware';
 export class TarifController {
   static async createTarif(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const tarif = await Tarif.create(req.body);
+      const tarif = await Tarif.create({
+        ...req.body, 
+        boutiqueId: req.user?.boutiqueId
+      });
 
       const tarifWithRelations = await Tarif.findByPk(tarif.id, {
         include: [

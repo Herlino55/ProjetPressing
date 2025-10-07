@@ -8,10 +8,12 @@ export class CommandeController {
   static async createCommande(req: AuthRequest, res: Response): Promise<void> {
     try {
       const numeroCommande = generateNumeroCommande();
-
+      let montantTotal = 0;
       const commande = await Commande.create({
         ...req.body,
         numeroCommande,
+        montantTotal,
+        boutiqueId: req.user?.boutiqueId,
         utilisateurId: req.user?.id
       });
 

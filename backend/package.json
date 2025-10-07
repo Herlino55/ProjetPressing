@@ -6,7 +6,16 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:init": "npx sequelize-cli init",
+    "db:create": "npx sequelize-cli db:create",
+    "db:drop": "npx sequelize-cli db:drop",
+    "db:migrate": "npx sequelize-cli db:migrate --migrations-path migrations --models-path /models --seeders-path /seeders",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo --migrations-path src/migrations",
+    "db:migrate:undo:all": "npx sequelize-cli db:migrate:undo:all --migrations-path /migrations",
+    "db:seed": "npx sequelize-cli db:seed:all --seeders-path seeders",
+    "db:seed:undo": "npx sequelize-cli db:seed:undo:all --seeders-path seeders",
+    "db:reset": "npm run db:drop && npm run db:create && npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -29,8 +38,9 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.6.2",
+    "@types/node": "^24.7.0",
     "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

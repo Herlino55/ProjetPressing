@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import { ClientController } from '../controllers/client.controller';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, authorize } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validation.middleware';
 import { clientValidators } from '../utils/validators';
+import { RoleUtilisateur } from '../models/utilisateur.model';
 
 const router = Router();
 
 router.post(
   '/',
   authenticate,
+  authorize(RoleUtilisateur.ADMIN, RoleUtilisateur.GERANT),
   validate(clientValidators.create),
   ClientController.createClient
 );

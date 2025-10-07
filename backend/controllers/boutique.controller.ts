@@ -143,6 +143,7 @@ export class BoutiqueController {
       await Historique.create({
         utilisateurId: req.user?.id,
         typeAction: TypeAction.DELETE,
+        boutiqueId: boutique.id,
         entite: 'boutique',
         entiteId: boutique.id,
         description: `Suppression de la boutique ${boutique.nom}`,

@@ -16,6 +16,7 @@ export class VetementController {
 
       const vetement = await Vetement.create({
         ...req.body,
+        boutiqueId: req.user?.boutiqueId,
         image: imageUrl
       });
 
@@ -52,11 +53,31 @@ export class VetementController {
     }
   }
 
+   static async getVetementsByBoutique(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const vetements = await Vetement.findAll({
+        where: { boutiqueId: req.user?.boutiqueId },
+        order: [['nom', 'ASC']]
+      });
+
+      res.json({
+        success: true,
+        data: vetements
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des vêtements',
+        error: error.message
+      });
+    }
+  }
+
   static async getVetementById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const vetement = await Vetement.findByPk(req.params.id);
 
-      if (!vetement) {
+      if (!vetement || vetement.boutiqueId !== req.user?.boutiqueId) {
         throw new NotFoundError('Vêtement non trouvé');
       }
 

@@ -45,7 +45,6 @@ export const clientValidators = {
 export const commandeValidators = {
   create: [
     body('clientId').isInt().withMessage('ID client invalide'),
-    body('boutiqueId').isInt().withMessage('ID boutique invalide'),
     body('dateDepot').optional().isISO8601().withMessage('Date invalide'),
     body('dateRetrait').optional().isISO8601().withMessage('Date invalide')
   ],
@@ -59,7 +58,7 @@ export const paiementValidators = {
   create: [
     body('commandeId').isInt().withMessage('ID commande invalide'),
     body('montant').isDecimal().withMessage('Montant invalide'),
-    body('methodePaiement').isIn(['espece', 'carte', 'mobile', 'virement', 'cheque']).withMessage('Méthode de paiement invalide'),
+    body('methodePaiement').isIn(['espece', 'carte', 'mobile money', 'orange money', 'virement', 'cheque']).withMessage('Méthode de paiement invalide'),
     body('statut').optional().isIn(['en_attente', 'paye', 'partiel', 'rembourse'])
   ]
 };
@@ -67,7 +66,6 @@ export const paiementValidators = {
 export const tarifValidators = {
   create: [
     body('vetementId').isInt().withMessage('ID vêtement invalide'),
-    body('boutiqueId').isInt().withMessage('ID boutique invalide'),
     body('typeService').isIn(['lavage', 'repassage', 'nettoyage_sec', 'detachage', 'pressing_complet']).withMessage('Type de service invalide'),
     body('prix').isDecimal().withMessage('Prix invalide')
   ]
