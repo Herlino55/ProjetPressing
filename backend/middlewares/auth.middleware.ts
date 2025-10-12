@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
     email: string;
     role: RoleUtilisateur;
     boutiqueId?: number;
+    nom: string;
   };
 }
 

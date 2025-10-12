@@ -25,6 +25,9 @@ interface CommandeAttributes {
   notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  Client?: Client;
+  Boutique?: Boutique;
+  Utilisateur?: Utilisateur;
 }
 
 interface CommandeCreationAttributes extends Optional<CommandeAttributes, 'id' | 'dateRetrait' | 'notes' | 'montantTotal'> {}
@@ -40,6 +43,9 @@ class Commande extends Model<CommandeAttributes, CommandeCreationAttributes> imp
   public dateDepot!: Date;
   public dateRetrait?: Date;
   public notes?: string;
+  public Client?: Client;
+  public Boutique?: Boutique;
+  public Utilisateur?: Utilisateur;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

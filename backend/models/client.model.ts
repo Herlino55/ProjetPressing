@@ -12,6 +12,7 @@ interface ClientAttributes {
   boutiqueId: number;
   createdAt?: Date;
   updatedAt?: Date;
+  Boutique?: Boutique;
 }
 
 interface ClientCreationAttributes extends Optional<ClientAttributes, 'id' | 'email' | 'adresse'> {}
@@ -24,6 +25,7 @@ class Client extends Model<ClientAttributes, ClientCreationAttributes> implement
   public email?: string;
   public adresse?: string;
   public boutiqueId!: number;
+  public Boutique?: Boutique;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

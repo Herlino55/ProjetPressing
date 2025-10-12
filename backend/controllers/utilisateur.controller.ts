@@ -177,7 +177,8 @@ export class UtilisateurController {
         id: utilisateur.id,
         email: utilisateur.email,
         role: utilisateur.role,
-        boutiqueId: utilisateur.boutiqueId
+        boutiqueId: utilisateur.boutiqueId,
+        nom: utilisateur.nom
       });
 
       const userResponse = utilisateur.toJSON() as any;
@@ -224,7 +225,8 @@ export class UtilisateurController {
         id: utilisateur.id,
         email: utilisateur.email,
         role: utilisateur.role,
-        boutiqueId: utilisateur.boutiqueId
+        boutiqueId: utilisateur.boutiqueId,
+        nom: utilisateur.nom
       });
 
       const userResponse = utilisateur.toJSON() as any;

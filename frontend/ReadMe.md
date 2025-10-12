@@ -83,3 +83,86 @@ pressing_app/
 │
 ├── pubspec.yaml
 └── README.md
+
+
+# endpoint
+
+ 1. vetements
+    - list: vetements/
+    - create: vetements/
+    - byBoutique: vetements/boutique
+    - byId: vetements/:id
+    - update: vetements/:id
+    - delete: vetements/:id
+
+ 2. utilisateur
+    - login: utilisateurs/login
+    - register: utilisateurs/register
+    - getprofile: utilisateurs/profile
+    - list: utilisateurs/
+    - create: utilisateurs/
+    - byId: utilisateurs/:id
+    - update: utilisateurs/:id
+    - delete: utilisateurs/:id
+
+ 3. tarif
+    - list: tarifs/
+    - create: tarifs/
+    - byId: tarifs/:id
+    - byVetementId: tarifs/:vetementId
+    - update: tarifs/:id
+    - delete: tarifs/:id
+
+ 4. paiement
+    - list: paiements/
+    - create: paiements/
+    - byId: paiements/:id
+    - byCommandeId: paiements/:commandeId
+    - byBoutiqueId: paiements/:boutiqueId
+    - update: paiements/:id
+    - delete: paiements/:id
+
+ 5. stats
+    - global: stats/global
+    - byBoutique: stats/boutique/:boutiqueId
+    - periode: stats/period
+    - topClient: stats/top-clients
+    - topVetement: stats/top-vetements
+
+ 6. historique
+    - global: historiques/
+    - byBoutique: historiques/boutique/:boutiqueId
+    - byUser: historiques/utilisateur/:userId
+
+ 7. commandeDetail
+    - list: commandes/:commandeId/details
+    - create: commandes/:commandeId/details
+    - update: commandes/details/:detailId
+    - delete: commandes/details/:detailId
+
+ 8. commande
+    - list: commandes/
+    - create: commandes/
+    - byId: commandes/:id
+    - byClientId: commandes/client/:clientId
+    - byBoutique: commandes/boutique/:boutiqueId
+    - update: commandes/:id
+    - delete: commandes/:id
+    - updateStatut: commandes/:id/statut
+
+ 9. client
+    - list: clients/
+    - create: clients/
+    - search: clients/search
+    - byId: clients/:id
+    - update: clients/:id
+    - delete: clients/:id
+
+ 10. boutique
+    - list: boutiques/
+    - create: boutiques/
+    - historique: boutiques/:id/historique
+    - byId: boutiques/:id
+    - update: boutiques/:id
+    - delete: boutiques/:id
+    

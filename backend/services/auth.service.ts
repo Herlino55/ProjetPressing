@@ -8,6 +8,7 @@ interface TokenPayload {
   email: string;
   role: RoleUtilisateur;
   boutiqueId?: number;
+  nom: string;
 }
 
 export class AuthService {

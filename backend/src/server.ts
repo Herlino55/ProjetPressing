@@ -1,6 +1,7 @@
 import app from './app';
 import { connectDB } from '../config/db.config';
 import { Logger } from '../utils/logger';
+import { SchedulerService } from '../services/scheduler.service';
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,6 +19,9 @@ const startServer = async (): Promise<void> => {
     process.exit(1);
   }
 };
+
+//rappels automatiques
+SchedulerService.startJobs();
 
 process.on('unhandledRejection', (reason: any) => {
   Logger.error('Unhandled Rejection:', reason);
