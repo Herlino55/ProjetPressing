@@ -3,12 +3,16 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 import { Utilisateur, Boutique } from '../models';
 import { AuthService } from '../services/auth.service';
 import { NotFoundError, UnauthorizedError } from '../middlewares/error.middleware';
+import { RoleUtilisateur } from '../models/utilisateur.model';
 
 export class UtilisateurController {
   static async createUtilisateur(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { email, password, ...rest } = req.body;
-
+      
+      if(req.user?.boutiqueId && !rest.boutiqueId){
+        rest.boutiqueId = req.user.boutiqueId;
+      }
       const existingUser = await Utilisateur.findOne({ where: { email } });
       if (existingUser) {
         res.status(400).json({
@@ -51,25 +55,42 @@ export class UtilisateurController {
         whereClause.role = req.query.role;
       }
 
-      if (req.query.boutiqueId) {
-        whereClause.boutiqueId = req.query.boutiqueId;
+      if (req.user?.boutiqueId) {
+        whereClause.boutiqueId = req.user?.boutiqueId;
       }
 
       if (req.query.actif !== undefined) {
         whereClause.actif = req.query.actif === 'true';
       }
 
-      const utilisateurs = await Utilisateur.findAll({
-        where: whereClause,
-        include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
-        attributes: { exclude: ['password'] },
-        order: [['createdAt', 'DESC']]
-      });
+      if(req.user?.role === RoleUtilisateur.ADMIN){
+          const utilisateurs = await Utilisateur.findAll({
+          include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
+          attributes: { exclude: ['password'] },
+          order: [['createdAt', 'DESC']]
+        });
 
-      res.json({
-        success: true,
-        data: utilisateurs
-      });
+        res.json({
+          success: true,
+          data: utilisateurs,
+          boutiqueId: req.user?.boutiqueId || null
+        });
+      }else{
+
+          const utilisateurs = await Utilisateur.findAll({
+          where: whereClause,
+          include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
+          attributes: { exclude: ['password'] },
+          order: [['createdAt', 'DESC']]
+        });
+
+        res.json({
+          success: true,
+          data: utilisateurs,
+          boutiqueId: req.user?.boutiqueId || null
+        });
+
+      }
     } catch (error: any) {
       res.status(500).json({
         success: false,
@@ -186,6 +207,7 @@ export class UtilisateurController {
 
       res.json({
         success: true,
+        boutiqueId: utilisateur.boutiqueId,
         message: 'Connexion réussie',
         data: {
           token,
@@ -200,54 +222,54 @@ export class UtilisateurController {
     }
   }
 
-  static async register(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { email, password, ...rest } = req.body;
+  // static async register(req: AuthRequest, res: Response): Promise<void> {
+  //   try {
+  //     const { email, password, ...rest } = req.body;
 
-      const existingUser = await Utilisateur.findOne({ where: { email } });
-      if (existingUser) {
-        res.status(400).json({
-          success: false,
-          message: 'Cet email est déjà utilisé'
-        });
-        return;
-      }
+  //     const existingUser = await Utilisateur.findOne({ where: { email } });
+  //     if (existingUser) {
+  //       res.status(400).json({
+  //         success: false,
+  //         message: 'Cet email est déjà utilisé'
+  //       });
+  //       return;
+  //     }
 
-      const hashedPassword = await AuthService.hashPassword(password);
+  //     const hashedPassword = await AuthService.hashPassword(password);
 
-      const utilisateur = await Utilisateur.create({
-        ...rest,
-        email,
-        password: hashedPassword
-      });
+  //     const utilisateur = await Utilisateur.create({
+  //       ...rest,
+  //       email,
+  //       password: hashedPassword
+  //     });
 
-      const token = AuthService.generateToken({
-        id: utilisateur.id,
-        email: utilisateur.email,
-        role: utilisateur.role,
-        boutiqueId: utilisateur.boutiqueId,
-        nom: utilisateur.nom
-      });
+  //     const token = AuthService.generateToken({
+  //       id: utilisateur.id,
+  //       email: utilisateur.email,
+  //       role: utilisateur.role,
+  //       boutiqueId: utilisateur.boutiqueId,
+  //       nom: utilisateur.nom
+  //     });
 
-      const userResponse = utilisateur.toJSON() as any;
-      delete userResponse.password;
+  //     const userResponse = utilisateur.toJSON() as any;
+  //     delete userResponse.password;
 
-      res.status(201).json({
-        success: true,
-        message: 'Inscription réussie',
-        data: {
-          token,
-          user: userResponse
-        }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: 'Erreur lors de l\'inscription',
-        error: error.message
-      });
-    }
-  }
+  //     res.status(201).json({
+  //       success: true,
+  //       message: 'Inscription réussie',
+  //       data: {
+  //         token,
+  //         user: userResponse
+  //       }
+  //     });
+  //   } catch (error: any) {
+  //     res.status(500).json({
+  //       success: false,
+  //       message: 'Erreur lors de l\'inscription',
+  //       error: error.message
+  //     });
+  //   }
+  // }
 
   static async getProfile(req: AuthRequest, res: Response): Promise<void> {
     try {

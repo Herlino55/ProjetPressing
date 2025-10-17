@@ -71,19 +71,19 @@ Rappel.init(
     boutiqueId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: "Boutiques", key: "id" },
+      references: { model: "boutiques", key: "id" },
       onDelete: "CASCADE",
     },
     clientId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: { model: "Clients", key: "id" },
+      references: { model: "clients", key: "id" },
       onDelete: "SET NULL",
     },
     commandeId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: { model: "Commandes", key: "id" },
+      references: { model: "commandes", key: "id" },
       onDelete: "SET NULL",
     },
     statut: {
@@ -114,11 +114,11 @@ Rappel.init(
   }
 );
 
-Rappel.belongsTo(Boutique, { foreignKey: "boutiqueId" });
-Rappel.belongsTo(Client, { foreignKey: "clientId" });
-Rappel.belongsTo(Commande, { foreignKey: "commandeId" });
-Boutique.hasMany(Rappel, { foreignKey: "boutiqueId" });
-Client.hasMany(Rappel, { foreignKey: "clientId" });
-Commande.hasMany(Rappel, { foreignKey: "commandeId" });
+Rappel.belongsTo(Boutique, { foreignKey: "boutiqueId", as: 'boutique' });
+Rappel.belongsTo(Client, { foreignKey: "clientId", as: 'client' });
+Rappel.belongsTo(Commande, { foreignKey: "commandeId", as: 'commande' });
+Boutique.hasMany(Rappel, { foreignKey: "boutiqueId", as : 'rappels' });
+Client.hasMany(Rappel, { foreignKey: "clientId", as : 'rappels'  });
+Commande.hasMany(Rappel, { foreignKey: "commandeId", as : 'rappels'  });
 
 export default Rappel;

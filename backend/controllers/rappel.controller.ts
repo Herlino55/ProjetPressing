@@ -118,6 +118,58 @@ export class RappelController {
     }
   }
 
+  static async getAllRappelsByBoutique(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const boutiqueId = req.params.boutiqueId;
+        const rappels = await Rappel.findAll({
+            where: { boutiqueId },
+            include: [
+                { model: Boutique, as: "boutique", attributes: ["nom"] },
+                { model: Client, as: "client", attributes: ["nom", "telephone"] },
+                { model: Commande, as: "commande", attributes: ["numeroCommande"] },
+            ],
+            order: [["dateEnvoi", "DESC"]],
+        });
+
+        res.json({
+            success: true,
+            data: rappels,
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: "Erreur lors de la récupération des rappels par boutique",
+            error: error.message,
+        });
+    }
+    }
+
+    static async getAllRappelsByClient(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const clientId = req.params.clientId;
+        const rappels = await Rappel.findAll({
+            where: { clientId },
+            include: [
+                { model: Boutique, as: "boutique", attributes: ["nom"] },
+                { model: Client, as: "client", attributes: ["nom", "telephone"] },
+                { model: Commande, as: "commande", attributes: ["numeroCommande"] },
+            ],
+            order: [["dateEnvoi", "DESC"]],
+        });
+
+        res.json({
+            success: true,
+            data: rappels,
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: "Erreur lors de la récupération des rappels par boutique",
+            error: error.message,
+        });
+    }
+    }
+
   // ✅ Récupérer un rappel par ID
   static async getRappelById(req: AuthRequest, res: Response): Promise<void> {
     try {

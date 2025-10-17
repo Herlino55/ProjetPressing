@@ -26,6 +26,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
     const decoded = jwt.verify(token, authConfig.jwtSecret) as any;
     req.user = decoded;
+    // console.log('user', req.user);
 
     next();
   } catch (error) {

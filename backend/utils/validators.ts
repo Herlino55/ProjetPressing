@@ -54,6 +54,19 @@ export const commandeValidators = {
   ]
 };
 
+export const rappelValidators = {
+  create: [
+    body('type').isIn(['commande_prete', 'non_retrait', 'fidelisation', 'paiement', 'alerte_rendement']).withMessage('Type de rappel invalide'),
+    body('clientId').optional().isInt().withMessage('ID client invalide'),
+    body('commandeId').optional().isInt().withMessage('ID commande invalide'),
+    body('message').notEmpty().withMessage('Le message est requis'),
+    body('boutiqueId').isInt().withMessage('ID boutique invalide'),
+    body('canal').isIn(['whatsapp']).withMessage('Canal invalide'),
+    body('statut').isIn(['envoyé', 'échec']).withMessage('Statut invalide'),
+    body('dateEnvoi').optional().isISO8601().withMessage('Date invalide')
+  ]
+};
+
 export const paiementValidators = {
   create: [
     body('commandeId').isInt().withMessage('ID commande invalide'),

@@ -8,7 +8,7 @@ import { RoleUtilisateur } from '../models/utilisateur.model';
 const router = Router();
 
 router.post('/login', validate(utilisateurValidators.login), UtilisateurController.login);
-router.post('/register', validate(utilisateurValidators.create), UtilisateurController.register);
+// router.post('/register', validate(utilisateurValidators.create), UtilisateurController.register);
 
 router.get('/profile', authenticate, UtilisateurController.getProfile);
 

@@ -21,7 +21,7 @@ const startServer = async (): Promise<void> => {
 };
 
 //rappels automatiques
-SchedulerService.startJobs();
+// SchedulerService.startJobs();
 
 process.on('unhandledRejection', (reason: any) => {
   Logger.error('Unhandled Rejection:', reason);
