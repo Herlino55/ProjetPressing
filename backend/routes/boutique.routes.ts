@@ -20,12 +20,14 @@ router.post(
 router.get(
   '/',
   authenticate,
+  authorize(RoleUtilisateur.ADMIN),
   BoutiqueController.getBoutiques
 );
 
 router.get(
   '/:id',
   authenticate,
+  authorize(RoleUtilisateur.ADMIN),
   BoutiqueController.getBoutiqueById
 );
 

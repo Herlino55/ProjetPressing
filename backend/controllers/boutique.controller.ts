@@ -23,6 +23,7 @@ export class BoutiqueController {
       await Historique.create({
         utilisateurId: req.user?.id,
         typeAction: TypeAction.CREATE,
+        boutiqueId: boutique.id,
         entite: 'boutique',
         entiteId: boutique.id,
         description: `Création de la boutique ${boutique.nom}`
@@ -91,7 +92,6 @@ export class BoutiqueController {
       }
 
       const oldData = { ...boutique.toJSON() };
-
       if (req.file) {
         if (boutique.logo) {
           const publicId = CloudinaryService.extractPublicId(boutique.logo);
@@ -101,6 +101,7 @@ export class BoutiqueController {
         const result = await CloudinaryService.uploadImage(req.file.buffer, 'boutiques');
         req.body.logo = result.secure_url;
       }
+      
 
       await boutique.update(req.body);
 
@@ -138,11 +139,15 @@ export class BoutiqueController {
 
       const boutiqueData = { ...boutique.toJSON() };
 
-      await boutique.destroy();
+      boutique.actif = false;
+
+      await boutique.save();
+
+      // await boutique.destroy();
 
       await Historique.create({
         utilisateurId: req.user?.id,
-        typeAction: TypeAction.DELETE,
+        typeAction: TypeAction.UPDATE,
         boutiqueId: boutique.id,
         entite: 'boutique',
         entiteId: boutique.id,

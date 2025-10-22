@@ -1,8 +1,10 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { Commande, Client, Boutique, Utilisateur, CommandeDetail, Vetement, Tarif } from '../models';
+import { Commande, Client, Boutique, Utilisateur, CommandeDetail, Vetement, Tarif, Historique } from '../models';
 import { NotFoundError } from '../middlewares/error.middleware';
 import { generateNumeroCommande, getPagination, getPaginationData } from '../utils/helpers';
+import { TypeAction } from '../models/historique.model';
+import { RoleUtilisateur } from '../models/utilisateur.model';
 
 export class CommandeController {
   static async createCommande(req: AuthRequest, res: Response): Promise<void> {
@@ -24,6 +26,16 @@ export class CommandeController {
           { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
         ]
       });
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.CREATE,
+        boutiqueId: commande.boutiqueId,
+        entite: 'Commande',
+        entiteId: commande.id,
+        description: `Création de la commande ${commande.numeroCommande}`
+      });
+
 
       res.status(201).json({
         success: true,
@@ -47,8 +59,8 @@ export class CommandeController {
 
       const whereClause: any = {};
 
-      if (req.query.boutiqueId) {
-        whereClause.boutiqueId = req.query.boutiqueId;
+      if (req.user?.boutiqueId) {
+        whereClause.boutiqueId = req.user?.boutiqueId;
       }
 
       if (req.query.clientId) {
@@ -59,24 +71,48 @@ export class CommandeController {
         whereClause.statut = req.query.statut;
       }
 
-      const commandes = await Commande.findAndCountAll({
-        where: whereClause,
-        include: [
-          { model: Client, as: 'client' },
-          { model: Boutique, as: 'boutique', attributes: ['id', 'nom'] },
-          { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
-        ],
-        limit,
-        offset,
-        order: [['createdAt', 'DESC']]
-      });
+      if(req.user?.role === RoleUtilisateur.ADMIN)
+      {
+        const commandes = await Commande.findAndCountAll({
+          include: [
+            { model: Client, as: 'client' },
+            { model: Boutique, as: 'boutique', attributes: ['id', 'nom'] },
+            { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
+          ],
+          limit,
+          offset,
+          order: [['createdAt', 'DESC']]
+        });
 
-      const response = getPaginationData(commandes, page, limit);
+        const response = getPaginationData(commandes, page, limit);
 
-      res.json({
-        success: true,
-        data: response
-      });
+        res.json({
+          success: true,
+          data: response
+        });
+      }else
+      {
+        const commandes = await Commande.findAndCountAll({
+          where: whereClause,
+          include: [
+            { model: Client, as: 'client' },
+            { model: Boutique, as: 'boutique', attributes: ['id', 'nom'] },
+            { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
+          ],
+          limit,
+          offset,
+          order: [['createdAt', 'DESC']]
+        });
+
+        const response = getPaginationData(commandes, page, limit);
+
+        res.json({
+          success: true,
+          data: response
+        });
+      }
+
+      
     } catch (error: any) {
       res.status(500).json({
         success: false,
@@ -128,6 +164,8 @@ export class CommandeController {
         throw new NotFoundError('Commande non trouvée');
       }
 
+      const oldData = { ...commande.toJSON() }
+
       await commande.update(req.body);
 
       const updatedCommande = await Commande.findByPk(commande.id, {
@@ -136,6 +174,17 @@ export class CommandeController {
           { model: Boutique, as: 'boutique' },
           { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
         ]
+      });
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        boutiqueId: commande.boutiqueId,
+        typeAction: TypeAction.UPDATE,
+        entite: 'commande',
+        entiteId: commande.id,
+        description: `Modification de la commande ${commande.numeroCommande}`,
+        detailsAvant: oldData,
+        detailsApres: commande.toJSON()
       });
 
       res.json({
@@ -158,6 +207,18 @@ export class CommandeController {
       if (!commande) {
         throw new NotFoundError('Commande non trouvée');
       }
+
+      const commandeData = { ...commande.toJSON() };
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.DELETE,
+        boutiqueId: commande.boutiqueId,
+        entite: 'commande',
+        entiteId: commande.id,
+        description: `Suppression de la commande ${commande.numeroCommande}`,
+        detailsAvant: commandeData
+      });
 
       await commande.destroy();
 
@@ -204,7 +265,7 @@ export class CommandeController {
       const { offset } = getPagination(page, limit);
 
       const commandes = await Commande.findAndCountAll({
-        where: { boutiqueId: req.params.boutiqueId },
+        where: { boutiqueId: req.user?.boutiqueId },
         include: [
           { model: Client, as: 'client' },
           { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
@@ -237,6 +298,8 @@ export class CommandeController {
         throw new NotFoundError('Commande non trouvée');
       }
 
+      const oldData = { ...commande.toJSON() }
+
       await commande.update({ statut: req.body.statut });
 
       const updatedCommande = await Commande.findByPk(commande.id, {
@@ -245,6 +308,17 @@ export class CommandeController {
           { model: Boutique, as: 'boutique' },
           { model: Utilisateur, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }
         ]
+      });
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        boutiqueId: commande.boutiqueId,
+        typeAction: TypeAction.UPDATE,
+        entite: 'commande',
+        entiteId: commande.id,
+        description: `mise a jour du statut de la commande ${commande.numeroCommande}`,
+        detailsAvant: oldData,
+        detailsApres: commande.toJSON()
       });
 
       res.json({

@@ -34,7 +34,6 @@ export const clientValidators = {
     body('nom').notEmpty().withMessage('Le nom est requis'),
     body('prenom').notEmpty().withMessage('Le prénom est requis'),
     body('telephone').notEmpty().withMessage('Le téléphone est requis'),
-    body('boutiqueId').isInt().withMessage('ID boutique invalide'),
     body('email').optional().isEmail().withMessage('Email invalide')
   ],
   search: [

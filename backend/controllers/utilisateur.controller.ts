@@ -1,9 +1,10 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { Utilisateur, Boutique } from '../models';
+import { Utilisateur, Boutique, Historique } from '../models';
 import { AuthService } from '../services/auth.service';
 import { NotFoundError, UnauthorizedError } from '../middlewares/error.middleware';
 import { RoleUtilisateur } from '../models/utilisateur.model';
+import { TypeAction } from '../models/historique.model';
 
 export class UtilisateurController {
   static async createUtilisateur(req: AuthRequest, res: Response): Promise<void> {
@@ -33,6 +34,15 @@ export class UtilisateurController {
       const userResponse = utilisateur.toJSON() as any;
       delete userResponse.password;
 
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.CREATE,
+        boutiqueId: utilisateur.boutiqueId,
+        entite: 'utilisateur',
+        entiteId: utilisateur.id,
+        description: `Création de l'utilisateur ${utilisateur.nom}`
+      });
+
       res.status(201).json({
         success: true,
         message: 'Utilisateur créé avec succès',
@@ -57,11 +67,14 @@ export class UtilisateurController {
 
       if (req.user?.boutiqueId) {
         whereClause.boutiqueId = req.user?.boutiqueId;
+        whereClause.actif = 'true';
       }
 
-      if (req.query.actif !== undefined) {
-        whereClause.actif = req.query.actif === 'true';
-      }
+
+
+      // if (req.query.actif !== undefined) {
+      //   whereClause.actif = req.query.actif === 'true';
+      // }
 
       if(req.user?.role === RoleUtilisateur.ADMIN){
           const utilisateurs = await Utilisateur.findAll({
@@ -77,6 +90,8 @@ export class UtilisateurController {
         });
       }else{
 
+        console.log('wherClause', whereClause)
+
           const utilisateurs = await Utilisateur.findAll({
           where: whereClause,
           include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
@@ -87,7 +102,6 @@ export class UtilisateurController {
         res.json({
           success: true,
           data: utilisateurs,
-          boutiqueId: req.user?.boutiqueId || null
         });
 
       }
@@ -131,6 +145,8 @@ export class UtilisateurController {
         throw new NotFoundError('Utilisateur non trouvé');
       }
 
+      const oldData = { ...utilisateur.toJSON() };
+
       if (req.body.password) {
         req.body.password = await AuthService.hashPassword(req.body.password);
       }
@@ -139,6 +155,17 @@ export class UtilisateurController {
 
       const userResponse = utilisateur.toJSON() as any;
       delete userResponse.password;
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        boutiqueId: utilisateur.boutiqueId,
+        typeAction: TypeAction.UPDATE,
+        entite: 'utilisateur',
+        entiteId: utilisateur.id,
+        description: `Modification de l'utilisateur ${utilisateur.nom}`,
+        detailsAvant: oldData,
+        detailsApres: utilisateur.toJSON()
+      });
 
       res.json({
         success: true,
@@ -161,7 +188,32 @@ export class UtilisateurController {
         throw new NotFoundError('Utilisateur non trouvé');
       }
 
-      await utilisateur.destroy();
+      const utilisateurData = { ...utilisateur.toJSON()}
+
+      
+      if(parseInt(req.params.id) === 12){
+         res.status(400).json({
+          success: false,
+          message: 'impossible de supprimer l\'admin'
+        });
+        return;
+      }
+
+      utilisateur.actif = false;
+
+      await utilisateur.save();
+
+      // await utilisateur.destroy();
+
+       await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.DELETE,
+        boutiqueId: utilisateur.boutiqueId,
+        entite: 'utilisateur',
+        entiteId: utilisateur.id,
+        description: `Suppression de l'utilisateur ${utilisateur.nom}`,
+        detailsAvant: utilisateurData
+      });
 
       res.json({
         success: true,
@@ -188,6 +240,10 @@ export class UtilisateurController {
         throw new UnauthorizedError('Email ou mot de passe incorrect');
       }
 
+      if(utilisateur.actif === false){
+        throw new UnauthorizedError('Compte utilisateur désactivé');
+      }
+
       const isPasswordValid = await AuthService.comparePassword(password, utilisateur.password);
 
       if (!isPasswordValid) {
@@ -200,6 +256,15 @@ export class UtilisateurController {
         role: utilisateur.role,
         boutiqueId: utilisateur.boutiqueId,
         nom: utilisateur.nom
+      });
+
+      await Historique.create({
+        utilisateurId: utilisateur.id,
+        typeAction: TypeAction.LOGIN,
+        boutiqueId: utilisateur.boutiqueId,
+        entite: 'utilisateur',
+        entiteId: utilisateur.id,
+        description: `connexion ${utilisateur.role === 'gerant' ? 'du':'de l\''} ${utilisateur.role} ${utilisateur.nom}`
       });
 
       const userResponse = utilisateur.toJSON() as any;
@@ -290,6 +355,27 @@ export class UtilisateurController {
       res.status(error.statusCode || 500).json({
         success: false,
         message: error.message
+      });
+    }
+  }
+
+   static async getUtilisateurHistorique(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const historique = await Historique.findAll({
+        where: { utilisateurId: req.params.id },
+        include: [{ model: require('../models/utilisateur.model').default, as: 'utilisateur', attributes: ['id', 'nom', 'prenom'] }],
+        order: [['createdAt', 'DESC']]
+      });
+
+      res.json({
+        success: true,
+        data: historique
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération de l\'historique',
+        error: error.message
       });
     }
   }

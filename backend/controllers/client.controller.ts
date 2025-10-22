@@ -1,14 +1,36 @@
 import { Response } from 'express';
 import { Op } from 'sequelize';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { Client, Boutique } from '../models';
+import { Client, Boutique, Historique } from '../models';
 import { NotFoundError } from '../middlewares/error.middleware';
 import { getPagination, getPaginationData } from '../utils/helpers';
+import { TypeAction } from '../models/historique.model';
+import { RoleUtilisateur } from '../models/utilisateur.model';
 
 export class ClientController {
   static async createClient(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const client = await Client.create(req.body);
+
+      let boutiqueId = req.user?.boutiqueId;
+
+      if(!boutiqueId)
+      {
+        throw new NotFoundError('Boutique non trouvée');
+      }
+
+      const client = await Client.create({
+        ...req.body,
+        boutiqueId
+      });
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.CREATE,
+        boutiqueId: req.user?.boutiqueId,
+        entite: 'Client',
+        entiteId: client.id,
+        description: `Création du client ${client.nom}`
+      });
 
       res.status(201).json({
         success: true,
@@ -32,24 +54,40 @@ export class ClientController {
 
       const whereClause: any = {};
 
-      if (req.query.boutiqueId) {
-        whereClause.boutiqueId = req.query.boutiqueId;
+        whereClause.boutiqueId = req.user?.boutiqueId;
+
+      if(req.user?.role === RoleUtilisateur.ADMIN){
+        const clients = await Client.findAndCountAll({
+          include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
+          limit,
+          offset,
+          order: [['createdAt', 'DESC']]
+        });
+
+        const response = getPaginationData(clients, page, limit);
+
+        res.json({
+          success: true,
+          data: response
+        });
+      }else{
+        const clients = await Client.findAndCountAll({
+          where: whereClause,
+          include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
+          limit,
+          offset,
+          order: [['createdAt', 'DESC']]
+        });
+
+        const response = getPaginationData(clients, page, limit);
+
+        res.json({
+          success: true,
+          data: response
+        });
       }
 
-      const clients = await Client.findAndCountAll({
-        where: whereClause,
-        include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }],
-        limit,
-        offset,
-        order: [['createdAt', 'DESC']]
-      });
-
-      const response = getPaginationData(clients, page, limit);
-
-      res.json({
-        success: true,
-        data: response
-      });
+      
     } catch (error: any) {
       res.status(500).json({
         success: false,
@@ -89,7 +127,20 @@ export class ClientController {
         throw new NotFoundError('Client non trouvé');
       }
 
+      const oldData = { ...client.toJSON() };
+
       await client.update(req.body);
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        boutiqueId: req.user?.boutiqueId,
+        typeAction: TypeAction.UPDATE,
+        entite: 'Client',
+        entiteId: client.id,
+        description: `Modification du client ${client.nom}`,
+        detailsAvant: oldData,
+        detailsApres: client.toJSON()
+      });
 
       res.json({
         success: true,
@@ -111,6 +162,18 @@ export class ClientController {
       if (!client) {
         throw new NotFoundError('Client non trouvé');
       }
+
+      const ClientData = {...client.toJSON()};
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        typeAction: TypeAction.DELETE,
+        boutiqueId: req.user?.boutiqueId,
+        entite: 'Client',
+        entiteId: client.id,
+        description: `Suppression du client ${client.nom}`,
+        detailsAvant: ClientData
+      });
 
       await client.destroy();
 

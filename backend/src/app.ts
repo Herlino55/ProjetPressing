@@ -43,7 +43,8 @@ app.get('/', (req, res) => {
       commandes: '/api/commandes',
       paiements: '/api/paiements',
       historique: '/api/historique',
-      stats: '/api/stats'
+      stats: '/api/stats',
+      rappel: '/apai/rappel'
     }
   });
 });

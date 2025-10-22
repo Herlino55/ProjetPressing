@@ -47,4 +47,11 @@ router.delete(
   UtilisateurController.deleteUtilisateur
 );
 
+router.get(
+  '/:id/historique',
+  authenticate,
+  authorize(RoleUtilisateur.ADMIN, RoleUtilisateur.GERANT),
+  UtilisateurController.getUtilisateurHistorique
+);
+
 export default router;

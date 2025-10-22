@@ -15,7 +15,7 @@ interface ClientAttributes {
   Boutique?: Boutique;
 }
 
-interface ClientCreationAttributes extends Optional<ClientAttributes, 'id' | 'email' | 'adresse'> {}
+interface ClientCreationAttributes extends Optional<ClientAttributes, 'id' | 'email' | 'adresse'|'boutiqueId'> {}
 
 class Client extends Model<ClientAttributes, ClientCreationAttributes> implements ClientAttributes {
   public id!: number;
