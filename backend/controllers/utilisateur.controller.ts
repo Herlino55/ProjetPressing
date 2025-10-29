@@ -272,7 +272,6 @@ export class UtilisateurController {
 
       res.json({
         success: true,
-        boutiqueId: utilisateur.boutiqueId,
         message: 'Connexion réussie',
         data: {
           token,
