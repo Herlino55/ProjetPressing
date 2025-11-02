@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import type { LoginCredentials } from '@/types'
@@ -113,10 +113,12 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(credentials.value)
-    const redirect = (route.query.redirect as string)
+    await nextTick()
+    const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
+    console.log(2)
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Identifiants invalides'
+    error.value = err.response?.data?.message || 'Une erreur c\'est produite. Veuillez reessayer plutard '
   } finally {
     loading.value = false
   }

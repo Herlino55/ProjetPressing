@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
   UTILISATEURS: {
     BASE: '/utilisateurs',
     BY_ID: (id: number) => `/utilisateurs/${id}`,
+    Update: (id: number) => `/utilisateurs/${id}`,
+    UpdatePassword: '/utilisateurs/password/',
   },
   CLIENTS: {
     BASE: '/clients',
@@ -28,7 +30,7 @@ export const API_ENDPOINTS = {
     BASE: '/commandes',
     BY_ID: (id: number) => `/commandes/${id}`,
     BY_CLIENT: (clientId: number) => `/commandes/client/${clientId}`,
-    BY_BOUTIQUE: (boutiqueId: number) => `/commandes/boutique/${boutiqueId}`,
+    BY_BOUTIQUE: '/commandes/boutique/',
     UPDATE_STATUS: (id: number) => `/commandes/${id}/status`,
   },
   COMMANDE_DETAILS: {
@@ -59,5 +61,11 @@ export const API_ENDPOINTS = {
     BY_PERIOD: '/stats/period',
     TOP_CLIENTS: '/stats/top-clients',
     TOP_VETEMENTS: '/stats/top-vetements',
+  },
+  RAPPELS: {
+    BASE: '/rappels',
+    BY_ID: (id: number) => `/rappels/${id}`,
+    BY_BOUTIQUE: (boutiqueId: number) => `/rappels/boutique/${boutiqueId}`,
+    BY_CLIENT: (clientId: number) => `/rappels/clients/${clientId}`,
   },
 }

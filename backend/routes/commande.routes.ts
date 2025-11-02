@@ -26,7 +26,7 @@ router.get(
 );
 
 router.get(
-  '/boutique/:boutiqueId',
+  '/boutique/',
   authenticate,
   CommandeController.getCommandesByBoutique
 );

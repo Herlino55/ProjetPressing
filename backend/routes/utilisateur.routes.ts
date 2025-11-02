@@ -28,9 +28,15 @@ router.get(
 );
 
 router.get(
-  '/:id',
+  'u/:id',
   authenticate,
   UtilisateurController.getUtilisateurById
+);
+
+router.put(
+  '/password/',
+  authenticate,
+  UtilisateurController.updatePassword
 );
 
 router.put(

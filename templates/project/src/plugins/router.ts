@@ -53,6 +53,30 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/profile/ProfileView.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'rappels',
+        name: 'Rappels',
+        component: () => import('@/views/rappels/RappelsList.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'clients',
+        name: 'Clients',
+        component: () => import('@/views/clients/ClientsList.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'clients/nouveau',
+        name: 'NouveauClient',
+        component: () => import('@/views/clients/ClientForm.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'clients/:id',
+        name: 'ModifierClient',
+        component: () => import('@/views/clients/ClientForm.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
 ]
@@ -64,11 +88,12 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const isAuthenticated = authStore.isAuthenticated
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  console.log('Route guard:', to.name, 'isAuthenticated:', authStore.isAuthenticated)
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
-  } else if (to.name === 'Login' && isAuthenticated) {
+  } else if (to.name === 'Login' && authStore.isAuthenticated) {
     next({ name: 'Dashboard' })
   } else if (to.meta.roles) {
     const roles = to.meta.roles as UserRole[]

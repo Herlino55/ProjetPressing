@@ -4,10 +4,10 @@ export enum UserRole {
   EMPLOYE = 'employe'
 }
 
-export enum UserStatus {
-  ACTIF = 'actif',
-  INACTIF = 'inactif'
-}
+// export enum UserStatus {
+//   ACTIF = 'true',
+//   INACTIF = 'false'
+// }
 
 export enum CommandeStatus {
   EN_ATTENTE = 'en_attente',
@@ -30,6 +30,23 @@ export enum PaiementMethod {
   VIREMENT = 'virement'
 }
 
+export enum RappelType {
+  COMMANDE_PRETE = 'commande_prete',
+  NON_RETRAIT = 'non_retrait',
+  FIDELISATION = 'fidelisation',
+  PAIEMENT = 'paiement',
+  ALERTE_RENDEMENT = 'alerte_rendement'
+}
+
+export enum RappelStatus {
+  ENVOYE = 'envoyé',
+  ECHEC = 'échec'
+}
+
+export enum RappelCanal {
+  WHATSAPP = 'whatsapp'
+}
+
 export interface Boutique {
   id: number;
   nom: string;
@@ -46,14 +63,13 @@ export interface Utilisateur {
   nom: string;
   prenom: string;
   email: string;
-  password: string;
-  telephone?: string;
+  telephone: string;
   role: UserRole;
   boutiqueId?: number;
-  actif: boolean;
   boutique?: Boutique;
-  createdAt?: Date;
-  updatedAt?: Date;
+  actif: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Client {
@@ -110,22 +126,20 @@ export interface Commande {
 }
 
 export interface Rappel {
-  id?: number;
-  type:
-    | "commande_prete"
-    | "non_retrait"
-    | "fidelisation"
-    | "paiement"
-    | "alerte_rendement";
+  id: number;
+  type: RappelType;
   boutiqueId: number;
   clientId?: number;
   commandeId?: number;
-  statut: "envoyé" | "échec";
-  canal: "whatsapp";
+  statut: RappelStatus;
+  canal: RappelCanal;
   message: string;
-  dateEnvoi: Date;
+  dateEnvoi: string;
   createdAt: string;
   updatedAt: string;
+  boutique?: Boutique;
+  client?: Client;
+  commande?: Commande;
 }
 
 export interface CommandeDetail {
@@ -166,11 +180,7 @@ export interface Historique {
   createdAt: string;
   utilisateur?: Utilisateur;
 }
-/*
-"caTotal": 0,
-		"nbClients": 2,
-		"totalCommandes": 0,
-     */
+
 export interface Stats {
   totalCommandes: number;
   commandesParStatut: CommandesParStatut;
@@ -185,6 +195,37 @@ interface CommandesParStatut {
   [statut: string]: number
 }
 
+export interface CreateRappelData {
+  type: RappelType;
+  clientId?: number;
+  commandeId?: number;
+  message: string;
+}
+
+export interface RappelResponse {
+  rappel: Rappel;
+  whatsappUrl: string | null;
+}
+
+export interface AdminRappel{
+  success: boolean;
+  data: AdminGetRappels;
+}
+
+export interface AdminGetRappels{
+  items: Rappel[]; 
+  count: number; 
+  totalPages: number; 
+  currentPage: number
+}
+
+export interface GetAllModels<T> {
+  items: T; 
+  count: number; 
+  totalPages: number; 
+  currentPage: number
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -197,7 +238,7 @@ export interface AuthResponse {
 
 export interface ApiResponse<T> {
   success: boolean;
-  data?: T;
+  data: T;
   message?: string;
   error?: string;
 }

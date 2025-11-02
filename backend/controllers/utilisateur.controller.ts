@@ -233,7 +233,7 @@ export class UtilisateurController {
 
       const utilisateur = await Utilisateur.findOne({
         where: { email, actif: true },
-        include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom'] }]
+        include: [{ model: Boutique, as: 'boutique', attributes: ['id', 'nom', 'logo'] }]
       });
 
       if (!utilisateur) {
@@ -376,6 +376,70 @@ export class UtilisateurController {
         message: 'Erreur lors de la récupération de l\'historique',
         error: error.message
       });
+    }
+  }
+
+  static async updatePassword(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { oldPassword, newPassword} = req.body;
+
+      if(!oldPassword || oldPassword.length < 6|| !newPassword || newPassword.length < 6){
+        res.status(400).json({
+          success: false,
+          message: 'Le mot de passe doit contenir au moins 6 caractères'
+        });
+        return;
+      }
+
+      const utilisateur = await Utilisateur.findByPk(req.user?.id);
+
+      if (!utilisateur) {
+        throw new NotFoundError('Utilisateur non trouvé');
+      }
+
+      const oldData = { ...utilisateur.toJSON() };
+
+      const isPasswordValid = await AuthService.comparePassword(oldPassword, utilisateur.password);
+
+      if (!isPasswordValid) {
+        res.status(400).json({
+          success: false,
+          message: 'Le mot de passe est incorrect'
+        });
+        return;
+      }
+
+      let newmdp =  await AuthService.hashPassword(newPassword);
+
+      utilisateur.password = newmdp;
+
+      await utilisateur.save();
+
+      const userResponse = utilisateur.toJSON() as any;
+      delete userResponse.password;
+
+      await Historique.create({
+        utilisateurId: req.user?.id,
+        boutiqueId: utilisateur.boutiqueId,
+        typeAction: TypeAction.UPDATE,
+        entite: 'utilisateur',
+        entiteId: utilisateur.id,
+        description: `changement du mot de passe de ${utilisateur.nom}`,
+        detailsAvant: oldData,
+        detailsApres: utilisateur.toJSON()
+      });
+
+      res.json({
+        success: true,
+        message: 'Mot de passe mis à jour avec succès',
+        data: userResponse
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message
+      });
+      console.error('Error updating password:', error.message);
     }
   }
 }

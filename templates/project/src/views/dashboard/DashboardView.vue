@@ -173,7 +173,7 @@
             <v-icon color="primary" size="48">mdi-account-plus</v-icon>
             <h3 class="text-h6 font-weight-bold mt-4">Nouveau client</h3>
             <p class="text-caption text-grey mt-2">Enregistrer un nouveau client</p>
-            <v-btn color="primary" variant="outlined" block class="mt-4 text-none" disabled>
+            <v-btn color="primary" variant="outlined" block class="mt-4 text-none" :to="{ name: 'NouveauClient' }">
               Ajouter
             </v-btn>
           </v-card-text>

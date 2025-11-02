@@ -1,9 +1,10 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" app :permanent="$vuetify.display.mdAndUp">
+    <v-navigation-drawer v-model="drawer" app :permanent="$vuetify.display.mdAndUp" height="100%">
       <div class="pa-4">
-        <div class="d-flex align-center mb-4">
-          <v-icon color="primary" size="40">mdi-washing-machine</v-icon>
+        <div class="d-flex align-center mb-4 flex-column">
+          <v-img v-if="authStore.user?.boutique?.logo" width="100" height="100" :src="authStore.user?.boutique?.logo"></v-img>
+          <v-icon v-else color="primary" size="40">mdi-washing-machine</v-icon>
           <div class="ml-3">
             <div class="text-h6 font-weight-bold primary--text">{{authStore.user?.boutique?.nom}}</div>
             <div class="text-caption text-grey">Management System</div>
@@ -34,7 +35,7 @@
           prepend-icon="mdi-account-multiple"
           title="Clients"
           value="clients"
-          disabled
+          :to="{ name: 'Clients' }"
         ></v-list-item>
 
         <v-list-item
@@ -63,6 +64,13 @@
           title="Tarifs"
           value="tarifs"
           disabled
+        ></v-list-item>
+
+        <v-list-item
+          prepend-icon="mdi-whatsapp"
+          title="Rappels WhatsApp"
+          value="rappels"
+          :to="{ name: 'Rappels' }"
         ></v-list-item>
 
         <v-list-item

@@ -23,7 +23,7 @@ export const generateWhatsAppLink = (
 
   // Ajouter le nom du gérant dans le message si disponible
   const finalMessage = senderName
-    ? `Message de la part de ${senderName} : ${message}`
+    ? `Message de la part du pressing ${senderName} : ${message}`
     : message;
 
   // Générer l'URL WhatsApp

@@ -35,12 +35,14 @@ export class RappelController {
       let statut: "envoyé" | "échec" = "échec";
       let whatsappUrl: string | null = null;
 
+      const boutique =  await Boutique.findByPk(req.user?.boutiqueId);
+
       try {
         if (client && client.telephone) {
           whatsappUrl = generateWhatsAppLink(
             client.telephone,
             message,
-            req.user?.nom || "la boutique"
+            boutique?.nom || "la boutique"
           );
           statut = "envoyé";
         }
@@ -121,6 +123,12 @@ export class RappelController {
   static async getAllRappelsByBoutique(req: AuthRequest, res: Response): Promise<void> {
     try {
       const boutiqueId = req.params.boutiqueId;
+      if(!boutiqueId){
+        res.status(400).json({
+          success: false,
+          message: "boutique introuvable",
+        });
+      }
         const rappels = await Rappel.findAll({
             where: { boutiqueId },
             include: [
@@ -130,6 +138,13 @@ export class RappelController {
             ],
             order: [["dateEnvoi", "DESC"]],
         });
+
+        if(rappels.length === 0){
+          res.status(400).json({
+          success: false,
+          message: "Aucun rappel pour cette boutique",
+        });
+        }
 
         res.json({
             success: true,

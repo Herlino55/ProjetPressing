@@ -66,8 +66,7 @@
           <template v-slot:item.nom="{ item }">
             <div class="d-flex align-center py-2">
               <v-avatar size="40" color="primary" class="mr-3">
-                <v-img v-if="item.photo" :src="item.photo"></v-img>
-                <span v-else class="text-white">{{ getInitials(item) }}</span>
+                <span class="text-white">{{ getInitials(item) }}</span>
               </v-avatar>
               <div>
                 <div class="font-weight-bold">{{ item.prenom }} {{ item.nom }}</div>
@@ -83,8 +82,8 @@
           </template>
 
           <template v-slot:item.statut="{ item }">
-            <v-chip :color="item.statut === 'actif' ? 'success' : 'error'" size="small">
-              {{ item.statut === 'actif' ? 'Actif' : 'Inactif' }}
+            <v-chip :color="item.actif ? 'success' : 'error'" size="small">
+              {{ item.actif ? 'Actif' : 'Inactif' }}
             </v-chip>
           </template>
 
@@ -156,7 +155,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import utilisateurService from '@/services/utilisateur.service'
-import type { Utilisateur, UserRole, UserStatus } from '@/types'
+import type { Utilisateur, UserRole } from '@/types'
 
 const authStore = useAuthStore()
 
@@ -164,7 +163,7 @@ const utilisateurs = ref<Utilisateur[]>([])
 const loading = ref(false)
 const search = ref('')
 const filterRole = ref<UserRole | null>(null)
-const filterStatus = ref<UserStatus | null>(null)
+const filterStatus = ref('')
 const deleteDialog = ref(false)
 const selectedUser = ref<Utilisateur | null>(null)
 const deleting = ref(false)
@@ -211,8 +210,10 @@ const filteredUtilisateurs = computed(() => {
     result = result.filter((u) => u.role === filterRole.value)
   }
 
-  if (filterStatus.value) {
-    result = result.filter((u) => u.statut === filterStatus.value)
+  if (filterStatus.value === 'actif') {
+    result = result.filter((u) => u.actif === true)
+  }else if (filterStatus.value === 'inactif'){
+    result = result.filter((u) => u.actif === false)
   }
 
   return result
@@ -225,7 +226,8 @@ onMounted(async () => {
 const loadUtilisateurs = async () => {
   loading.value = true
   try {
-    utilisateurs.value = await utilisateurService.getAll()
+    utilisateurs.value = await (await utilisateurService.getAll()).data
+    console.log("utilisateur : ", utilisateurs.value)
   } catch (error: any) {
     showSnackbar(error.response?.data?.message || 'Erreur de chargement', 'error')
     utilisateurs.value = [
@@ -237,7 +239,7 @@ const loadUtilisateurs = async () => {
         email: 'admin@pressing.com',
         telephone: '0123456789',
         role: 'admin' as UserRole,
-        statut: 'actif' as UserStatus,
+        actif: true,
         createdAt: '2024-01-15T10:00:00',
         updatedAt: '2024-01-15T10:00:00',
       },
@@ -249,7 +251,7 @@ const loadUtilisateurs = async () => {
         email: 'jean.martin@pressing.com',
         telephone: '0123456788',
         role: 'gerant' as UserRole,
-        statut: 'actif' as UserStatus,
+        actif: true,
         createdAt: '2024-02-20T14:30:00',
         updatedAt: '2024-02-20T14:30:00',
       },
@@ -261,7 +263,7 @@ const loadUtilisateurs = async () => {
         email: 'marie.dupont@pressing.com',
         telephone: '0123456787',
         role: 'employe' as UserRole,
-        statut: 'actif' as UserStatus,
+        actif: true,
         createdAt: '2024-03-10T09:15:00',
         updatedAt: '2024-03-10T09:15:00',
       },
@@ -322,12 +324,17 @@ const getRoleLabel = (role: UserRole): string => {
   }
 }
 
-const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('fr-FR', {
+const formatDate = (date: string | undefined): string => {
+  if(date){
+    return new Date(date).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-  })
+    })
+  }else{
+    return 'undifined'
+  }
+  
 }
 
 const showSnackbar = (text: string, color: string = 'success') => {

@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
       paiements: '/api/paiements',
       historique: '/api/historique',
       stats: '/api/stats',
-      rappel: '/api/rappel'
+      rappel: '/api/rappels'
     }
   });
 });

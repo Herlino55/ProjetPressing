@@ -23,8 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authService.login(credentials)
       user.value = response.data?.user || null
       token.value = response.data?.token || null
-      console.log('Login successful', user.value, token.value )
-      console.log('isAthenticate', isAuthenticated )
+      console.log('isAthenticate', isAuthenticated.value )
       return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Erreur de connexion'

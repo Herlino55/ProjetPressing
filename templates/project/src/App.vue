@@ -3,9 +3,11 @@
     <router-view />
   </v-app>
   <ToastNotification />
+  <LoarderOverlay />
 </template>
 
 <script setup lang="ts">
+import LoarderOverlay from './components/LoarderOverlay.vue';
 import ToastNotification from './components/ToastNotification.vue';
 
 </script>

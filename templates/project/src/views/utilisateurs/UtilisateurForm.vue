@@ -70,7 +70,7 @@
 
             <v-col cols="12" md="6">
               <v-select
-                v-model="form.statut"
+                v-model="form.actif"
                 label="Statut *"
                 :items="statusItems"
                 :rules="[rules.required]"
@@ -113,7 +113,6 @@
                 <div class="text-caption">
                   <strong>Permissions par rôle :</strong>
                   <ul class="mt-2">
-                    <li><strong>Admin :</strong> Accès complet à toutes les fonctionnalités</li>
                     <li><strong>Gérant :</strong> Gestion utilisateurs, clients, commandes, statistiques</li>
                     <li><strong>Employé :</strong> Gestion clients et commandes uniquement</li>
                   </ul>
@@ -153,7 +152,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import utilisateurService from '@/services/utilisateur.service'
-import type { Utilisateur, UserRole, UserStatus } from '@/types'
+import type { Utilisateur, UserRole } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -176,27 +175,26 @@ const form = ref({
   email: '',
   telephone: '',
   role: 'employe' as UserRole,
-  statut: 'actif' as UserStatus,
+  actif: true,
   password: '',
   confirmPassword: '',
   boutiqueId: authStore.user?.boutiqueId || 1,
 })
 
 const roleItems = [
-  { title: 'Admin', value: 'admin' },
   { title: 'Gérant', value: 'gerant' },
   { title: 'Employé', value: 'employe' },
 ]
 
 const statusItems = [
-  { title: 'Actif', value: 'actif' },
-  { title: 'Inactif', value: 'inactif' },
+  { title: 'Actif', value: true },
+  { title: 'Inactif', value: false },
 ]
 
 const rules = {
   required: (v: string) => !!v || 'Ce champ est requis',
   email: (v: string) => /.+@.+\..+/.test(v) || 'Email invalide',
-  phone: (v: string) => /^[0-9]{10}$/.test(v) || 'Téléphone invalide (10 chiffres)',
+  phone: (v: string) => /^[0-9]{9}$/.test(v) || 'Téléphone invalide (09 chiffres)',
   minLength: (v: string) => (v && v.length >= 6) || 'Minimum 6 caractères',
   matchPassword: (v: string) => v === form.value.password || 'Les mots de passe ne correspondent pas',
 }
@@ -211,18 +209,20 @@ const loadUtilisateur = async () => {
   loading.value = true
   try {
     const id = parseInt(route.params.id as string)
-    const user = await utilisateurService.getById(id)
+    console.log('id:', id);
+    const user = await (await utilisateurService.getById(id)).data
     form.value = {
       nom: user.nom,
       prenom: user.prenom,
       email: user.email,
       telephone: user.telephone,
       role: user.role,
-      statut: user.statut,
+      actif: user.actif,
       password: '',
       confirmPassword: '',
-      boutiqueId: user.boutiqueId,
+      boutiqueId: user.boutiqueId || 0,
     }
+    console.log('liste update:', form.value);
   } catch (error: any) {
     showSnackbar(error.response?.data?.message || 'Erreur de chargement', 'error')
   } finally {
@@ -241,16 +241,19 @@ const handleSubmit = async () => {
       email: form.value.email,
       telephone: form.value.telephone,
       role: form.value.role,
-      statut: form.value.statut,
+      actif: form.value.actif,
       boutiqueId: form.value.boutiqueId,
     }
 
     if (isEdit.value) {
+      console.log('liste update:', form.value);
       const id = parseInt(route.params.id as string)
       await utilisateurService.update(id, data)
       showSnackbar('Utilisateur modifié avec succès', 'success')
     } else {
+      console.log('liste create:', form.value);
       await utilisateurService.create({ ...data, password: form.value.password } as any)
+      
       showSnackbar('Utilisateur créé avec succès', 'success')
     }
 

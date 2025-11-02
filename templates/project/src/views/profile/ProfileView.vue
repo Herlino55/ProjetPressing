@@ -12,8 +12,8 @@
         <v-card elevation="2">
           <v-card-text class="text-center pa-6">
             <v-avatar size="120" color="primary" class="mb-4">
-              <v-img v-if="authStore.user?.photo" :src="authStore.user.photo"></v-img>
-              <span v-else class="text-h3 text-white">{{ getInitials() }}</span>
+              <!-- <v-img v-if="authStore.user?.photo" :src="authStore.user.photo"></v-img> -->
+              <span class="text-h3 text-white">{{ getInitials() }}</span>
             </v-avatar>
             <h2 class="text-h5 font-weight-bold">
               {{ authStore.user?.prenom }} {{ authStore.user?.nom }}
@@ -45,10 +45,10 @@
                 <v-list-item-title class="text-caption text-grey">Statut</v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip
-                    :color="authStore.user?.statut === 'actif' ? 'success' : 'error'"
+                    :color="authStore.user?.actif ? 'success' : 'error'"
                     size="x-small"
                   >
-                    {{ authStore.user?.statut === 'actif' ? 'Actif' : 'Inactif' }}
+                    {{ authStore.user?.actif ? 'Actif' : 'Inactif' }}
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>
@@ -180,28 +180,28 @@
         </v-card>
       </v-col>
     </v-row>
-
-    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000">
-      {{ snackbarText }}
-    </v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import type { UserRole } from '@/types'
+import { useUiStore } from '@/stores/ui'
+import utilisateurService from '@/services/utilisateur.service'
 
 const authStore = useAuthStore()
+const uistore = useUiStore()
 
-const formRef = ref()
-const passwordFormRef = ref()
+// Refs pour les formulaires
+const formRef = ref<{ reset?: () => void } | null>(null)
+const passwordFormRef = ref<{ reset?: () => void } | null>(null)
+
+// Formulaires et états
 const valid = ref(false)
 const passwordValid = ref(false)
 const loading = ref(false)
-const snackbar = ref(false)
-const snackbarText = ref('')
-const snackbarColor = ref('success')
+
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -213,12 +213,14 @@ const form = ref({
   telephone: '',
 })
 
+// Mot de passe
 const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
 })
 
+// Règles de validation
 const rules = {
   required: (v: string) => !!v || 'Ce champ est requis',
   email: (v: string) => /.+@.+\..+/.test(v) || 'Email invalide',
@@ -226,71 +228,71 @@ const rules = {
   matchPassword: (v: string) => v === passwordForm.value.newPassword || 'Les mots de passe ne correspondent pas',
 }
 
-onMounted(() => {
-  if (authStore.user) {
-    form.value = {
-      nom: authStore.user.nom,
-      prenom: authStore.user.prenom,
-      email: authStore.user.email,
-      telephone: authStore.user.telephone,
+// Mettre à jour le formulaire dès que l'utilisateur est chargé
+watch(
+  () => authStore.user,
+  (user) => {
+    if (user) {
+      form.value = {
+        nom: user.nom,
+        prenom: user.prenom,
+        email: user.email,
+        telephone: user.telephone,
+      }
     }
-  }
-})
+  },
+  { immediate: true }
+)
+
+// Helpers
+const currentUser = computed(() => authStore.user)
 
 const getInitials = (): string => {
-  if (!authStore.user) return ''
-  return `${authStore.user.prenom.charAt(0)}${authStore.user.nom.charAt(0)}`.toUpperCase()
+  if (!currentUser.value) return ''
+  return `${currentUser.value.prenom.charAt(0)}${currentUser.value.nom.charAt(0)}`.toUpperCase()
 }
 
 const getRoleColor = (role?: UserRole): string => {
   switch (role) {
-    case 'admin':
-      return 'error'
-    case 'gerant':
-      return 'warning'
-    case 'employe':
-      return 'info'
-    default:
-      return 'grey'
+    case 'admin': return 'error'
+    case 'gerant': return 'warning'
+    case 'employe': return 'info'
+    default: return 'grey'
   }
 }
 
 const getRoleLabel = (role?: UserRole): string => {
   switch (role) {
-    case 'admin':
-      return 'Administrateur'
-    case 'gerant':
-      return 'Gérant'
-    case 'employe':
-      return 'Employé'
-    default:
-      return 'Inconnu'
+    case 'admin': return 'Administrateur'
+    case 'gerant': return 'Gérant'
+    case 'employe': return 'Employé'
+    default: return 'Inconnu'
   }
 }
 
+// Changer le mot de passe
 const handleChangePassword = async () => {
   if (!passwordValid.value) return
 
-  loading.value = true
+  uistore.showLoader()
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    showSnackbar('Mot de passe modifié avec succès', 'success')
-    passwordForm.value = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+    const data = {
+      oldPassword: passwordForm.value.currentPassword,
+      newPassword: passwordForm.value.newPassword,
     }
-    passwordFormRef.value?.reset()
+
+    const result = await utilisateurService.updatePassword(data)
+    uistore.showToast(result.message, 'success')
+
+    // Reset formulaire
+    passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' }
+    passwordFormRef.value?.reset?.()
   } catch (error: any) {
-    showSnackbar('Erreur lors du changement de mot de passe', 'error')
+    const message = error.response?.data?.message || 'Erreur lors du changement de mot de passe'
+    uistore.showToast(message, 'error')
   } finally {
-    loading.value = false
+    uistore.hideLoader()
   }
 }
-
-const showSnackbar = (text: string, color: string = 'success') => {
-  snackbarText.value = text
-  snackbarColor.value = color
-  snackbar.value = true
-}
 </script>
+
